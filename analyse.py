@@ -1,8 +1,8 @@
 from ase.io import read
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 import matplotlib
-
 matplotlib.rcParams.update({'font.size': 18})
 
 def normal_vector_fit(points):
@@ -577,7 +577,7 @@ def plot_PBI_analysis():
     ax.set_zlim([-2.5,3.5])
     sm = ScalarMappable(cmap='Reds')
     sm.set_array(continuous_values)
-    plt.colorbar(sm, ax=ax, label='SF rate')
+    plt.colorbar(sm, ax=ax, label='Effective Singlet Fission Coupling')
     fig.savefig("analysis/3D_cluster.png", dpi=300)
     
 
@@ -592,7 +592,7 @@ def plot_PBI_analysis():
     ax.legend()
     sm = ScalarMappable(cmap='Reds')
     sm.set_array(continuous_values)
-    plt.colorbar(sm, ax=ax, label='SF rate')
+    plt.colorbar(sm, ax=ax, label='Effective Singlet Fission Coupling')
     fig.savefig("analysis/2D_cluster.png", dpi = 300)
 
     with open("analysis/analysis_2.txt",  "w") as file:
@@ -827,6 +827,38 @@ def twist_structure_for_scan(path_monomer_structure, path_to_structure, output_f
             attributes = [d_x,d_y,d_z,dx_rot,dy_rot,dz_rot,bowl_a*2e3,-bowl_b*2e3,twist_a,twist_b]
         make_dimers_from_trans_rot(path_monomer_structure, attributes,f"{output_folder}/{idx}", comment=f"{twist_a:.1f},{twist_b:.1f}")
 
+def twist_structure_monomer_scan(path_monomer_structure,output_folder):
+    mol_ref = read(path_monomer_structure, format='xyz',index=":")[0]
+    n_mol = len(mol_ref)
+    twist_a_lin = np.linspace(0, 30, 31)
+    
+    for idx, twist_a in enumerate(twist_a_lin):
+        attributes = [0,0,0,0,0,0,0,0,twist_a,0]
+        make_dimers_from_trans_rot(path_monomer_structure, attributes,f"{output_folder}/{idx}", comment=f"{twist_a:.1f}")
+        lines = []
+        with open(f"{output_folder}/{idx}.xyz","r") as file:
+            lines = file.readlines()
+        lines[0] = f"{n_mol}\n"
+        with open(f"{output_folder}/{idx}.xyz","w") as file:
+            file.writelines(lines[:n_mol+2])
+
+def bowl_structure_monomer_scan(path_monomer_structure,output_folder):
+    mol_ref = read(path_monomer_structure, format='xyz',index=":")[0]
+    n_mol = len(mol_ref)
+    bowl_a_lin = np.linspace(0, 170, 17*2+1)
+    
+    for idx, bowl_a in enumerate(bowl_a_lin):
+        attributes = [0,0,0,0,0,0,bowl_a,0,0,0]
+        make_dimers_from_trans_rot(path_monomer_structure, attributes,f"{output_folder}/{idx}", comment=f"{bowl_a:.1f}e-3")
+        lines = []
+        with open(f"{output_folder}/{idx}.xyz","r") as file:
+            lines = file.readlines()
+        lines[0] = f"{n_mol}\n"
+        with open(f"{output_folder}/{idx}.xyz","w") as file:
+            file.writelines(lines[:n_mol+2])
+
+
+
 def do_PCA_with_diffrent_parameters(path_monomer_structure, path_dimers, path_scan_data, mode = "best_score"):
 
     with open("latex/PCA_tables.tex", "w") as out:
@@ -853,4 +885,31 @@ def do_PCA_with_diffrent_parameters(path_monomer_structure, path_dimers, path_sc
 
         
 if __name__ == '__main__':
-    pass
+    path_to_data_folder = ""
+    PBI_flat = "pbi_flat.xyz"
+    PBI_flat_optim = "pbi_optim_flat.xyz"
+
+    #analyse_PBI(os.path.join(path_to_data_folder,"optimal_monomer_PBI.xyz"),os.path.join(path_to_data_folder,"PBI_best_score_sorted.xyz"),os.path.join(path_to_data_folder,"PBI_traj.npz"))
+    #statistic_PBI(os.path.join(path_to_data_folder,"optimal_monomer_PBI.xyz"),os.path.join(path_to_data_folder,"PBI_best_score_sorted.xyz"),os.path.join(path_to_data_folder,"PBI_traj.npz"))
+    #analyse_ethene(os.path.join(path_to_data_folder,"optimal_monomer_ethene.xyz"),os.path.join(path_to_data_folder,"ethene_best_score_sorted.xyz"),os.path.join(path_to_data_folder,"ethene_traj.npz"))
+    #plot_PBI_analysis()
+    #generate_caption()
+    #assemble_info_PBI(os.path.join(path_to_data_folder,"PBI_traj.npz"))
+    #structure_from_Nuckolls(os.path.join(path_to_data_folder,"optimal_monomer_PBI.xyz"))
+    #analyse_structure_from_anurag(path = "/Users/johannes/Downloads/traj_w/", path_monomer_structure = os.path.join(path_to_data_folder,"optimal_monomer_PBI.xyz"), table_head = "latex/table_head_PBI_hardness.txt", outputfile = "latex/PBI_anurag_table.tex")
+    #structure_from_Angi(os.path.join(path_to_data_folder,"optimal_monomer_PBI.xyz"))
+    #twist_structure_for_scan(os.path.join(path_to_data_folder,"optimal_monomer_PBI.xyz"),"twist_struct_316.xyz","simulations/twist_scan_2")
+    #twist_structure_for_scan(PBI_flat_optim,"twist_struct_252.xyz","simulations/twist_scans/twist_scan_252", ignore_bowl=False)
+    #twist_structure_for_scan(PBI_flat_optim,"twist_struct_316.xyz","simulations/twist_scans/twist_scan_316", ignore_bowl=False)
+
+    #do_PCA_with_diffrent_parameters(os.path.join(path_to_data_folder,"optimal_monomer_PBI.xyz"),os.path.join(path_to_data_folder,"PBI_best_score_sorted.xyz"),os.path.join(path_to_data_folder,"PBI_traj.npz"))
+
+    #make twists monomers
+    #twist_structure_monomer_scan(PBI_flat_optim,"simulations/twist_scans/monomers")
+
+    #make bowls monomers
+    #bowl_structure_monomer_scan(PBI_flat_optim,"simulations/bowl_scans/monomers")
+
+    #analyse minimal distances
+    #analyse_minimal_distances_PBI(os.path.join(path_to_data_folder,"optimal_monomer_PBI.xyz"),os.path.join(path_to_data_folder,"PBI_best_score_sorted.xyz"))
+    #analyse_minimal_distances_PBI_heavy_atom(os.path.join(path_to_data_folder,"optimal_monomer_PBI.xyz"),os.path.join(path_to_data_folder,"PBI_best_score_sorted.xyz"))
